@@ -1,0 +1,259 @@
+---
+title: "Homework 2 Data Science"
+author: "Govind Rachapudi"
+date: "1/28/24"
+output:
+  html_document:
+    df_print: paged
+---
+
+# 1. Beauty, or not, in the classroom
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+profs <- read.csv("profs.csv")
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+ggplot(profs, aes(x = eval)) + 
+  geom_histogram(color = "black", fill = "lightblue") +
+  labs(title = "Distribution of Professor Evaluations") +
+  labs(x = "ratings", y = "frequency of professors")
+
+#mean(profs$eval)
+  
+
+```
+
+This graph represents a distribution of Professor evaluations. The x-axis represents Evaluation scores and the y-axis represents the frequency of each rating or how many professors got that rating. The histogram is skewed left and the average rating for these professors is a 3.99/5.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+ggplot(profs, aes(x = eval, y = native, color = native)) + 
+  geom_boxplot() + 
+  coord_flip() +
+  labs(title = "Course Evaluations based on Native English Speaking Ability") + 
+  labs(x = "Native in English") + 
+  labs(y = "Course Eval Scores") + 
+  theme_bw()
+
+#profs %>% 
+  #group_by(native) %>% 
+  #summarize(avg_native = mean(eval))
+
+```
+
+This boxplot illustrates the comparative course evaluations at the University of Texas (UT), distinguishing between professors who are native English speakers and those who are not. According to the data, Professors who are native English speakers have a higher evaluation score on average (4.01/5 stars), while professors who are not native English speakers have a lower score on average (3.68/5 stars).
+
+```{r, echo=FALSE}
+ggplot(profs, aes(x = eval, fill = gender)) + 
+  geom_histogram(color = "black", binwidth = .5, alpha = 0.7) + 
+  facet_wrap(~gender) + 
+  labs(title = "Comparison of Course Evaluation Scores between genders")+
+  labs(x = "Course Evaluation Scores", y = "Frequency") + 
+  theme_classic()
+
+#profs %>% 
+  #group_by(profs$gender) %>% 
+  #summarize(avg_rating = mean(eval))
+```
+
+This bar plot shows the comparison of course evaluation scores between male and female professors. On average, males professors have a higher mean rating of 4.06/5 stars while female professors have a lower mean rating of 3.9/5 stars.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+ggplot(profs, aes(x = beauty, y = eval))+
+  geom_point(color = "black", alpha = 0.7) + 
+  geom_smooth(method = lm, color = "indianred", se = TRUE) + 
+  labs(title = "Association between Physical Attractiveness and Evaluation scores") + 
+  labs(x = "Attractiveness", y = "Evaluation Scores") + 
+  theme_bw()
+
+#cor(profs$beauty, profs$eval)
+```
+
+This scatterplot represents the Association of Physical attractiveness and Evaluation scores for professors at UT Austin. According to the data, there seems to be a weak positive correlation of .1890391 between a professor's attractiveness and course evaluation score. In this case, looks don't really matter!
+
+# Problem 2: Bike Sharing
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+bike <- read.csv("bikeshare.csv")
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+hours <- bike %>% 
+  group_by(hr) %>% 
+  summarize(avg_rentals = mean(total))
+
+ggplot(hours, aes(x = hr,y = avg_rentals))+
+  geom_line(color = "blue") + 
+  labs(title = "Average Hourly Bike Rentals", x = "Hours of the day", y = "Frequency of Rented bikes") + 
+  theme_bw()
+  
+#max(hours)
+
+
+```
+
+This graph shows the distribution of Average hourly bike rentals. According to the data 6:00 (hour 17) is the time with the Highest amount of bike rentals (461).
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+work <- bike %>% 
+  group_by(hr, workingday) %>% 
+  summarise(work_rentals = mean(total)) %>% 
+  mutate(workingday = ifelse(workingday == 0, yes = "Holiday", no = "Working day")) 
+
+ggplot(work, aes(x = hr, y = work_rentals))+
+  geom_line(color = "indianred")+
+  facet_wrap(~workingday)+
+  labs(title = "Average Hourly Bike Rentals", x = "Hours of the day", y = "Frequency of Rented bikes") + 
+  theme_bw()
+
+#work %>% 
+  #group_by(workingday) %>% 
+  #summarize(avg_renting = mean(work_rentals))
+```
+
+This graph compares average hourly bike rentals on holidays and working days. The line graph clearly shows higher activity on working days than holidays. On average, working days see 192 rentals, surpassing the 192 rentals on holidays. This indicates a clear preference for bike rentals on working days.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+ridership <- bike %>% 
+  group_by(hr, weathersit, workingday) %>% 
+  summarise(avg_rides = mean(total)) %>% 
+  mutate(workingday = ifelse(workingday == "0", "Holiday", "Working day")) 
+
+ridership9 <- ridership %>% 
+  filter(hr == 9)
+
+ggplot(ridership9, aes(x = as.factor(weathersit), y = avg_rides, fill = workingday)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Ridership during 9am by Weather situation", x = "Weather situation", y = "Average Rentals", fill = "Working day") +
+  scale_x_discrete(labels = c("1" = "Clear", "2" = "Mist", "3" = "Light Rain", "4" = "Heavy Rain (Thunderstorms)")) +
+  facet_wrap(~workingday)
+```
+
+This graph represents the Average Ridership during 9:00 AM based on weather situation on working day and a non-working day. Ridership during the working day is much higher on average than compared to a holiday. The most popular weather situation seems to be clear weather while light rain has a few riders but is mostly unpopular.
+
+# Problem 3 - Capital Metro UT Ridership
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+metro <- read.csv("capmetro_UT.csv")
+library(hrbrthemes)
+library(viridis)
+library(ggthemes)
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+boarding <- metro %>%
+  group_by(month, day_of_week, hour_of_day) %>% 
+  summarize(avg_boardings = mean(boarding))
+
+#boarding %>% 
+  #filter(hour_of_day == 16)
+
+#september <- boarding %>% 
+  #filter(month == "Sep", day_of_week == "Mon")
+
+#november <- boarding %>% 
+  #filter(month == "Nov", day_of_week == "Wed" | day_of_week == "Thu" | #day_of_week == "Fri")
+
+ggplot(boarding, aes(x = hour_of_day, y = avg_boardings, color = month))+
+  geom_line()+
+  facet_wrap(~day_of_week)+
+  theme_bw()+
+  labs(x = "Day of the week", y = "Average Boardings")+
+  labs(title = "Average boarding by day of the week, hour of the day, and month.") 
+  
+```
+
+This graph shows the average boarding by day of the week, hour of the day and by the month. According to the chart, average boarding during weekdays tends to peak near 4:00 PM - 5:00 PM (16-17), while boarding during the weekend varys due to inactivity. Mondays in September may have lower average boarding due to the fact that it is the first month back in school after the summer. Hence, students are feeling sluggish during the first month back and they are not able to travel as much on a Monday. Lastly, boarding on Weds/Thurs/Fri in November is much lower than on average. This can be attributed to the fact that November is a very academic heavy month in which many exams and midterms are being studied for, Hence, students are preferring to stay in one place and study rather than going to classes.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+boardingbytemp <- metro %>% 
+  group_by(temperature, hour_of_day, weekend) %>% 
+  summarize(mean_boardings = mean(boarding))
+
+ggplot(boardingbytemp, aes(x = temperature, y = mean_boardings, color = weekend))+
+  geom_point()+
+  facet_wrap(~hour_of_day)+
+  theme_bw() + 
+  labs(x = "Tempature", y = "Average Boarding")+
+  labs(title = "Boarding categorized by Tempature and Weekdays.")
+
+#cor(boardingbytemp$temperature, boardingbytemp$mean_boardings)
+        
+```
+
+When hour of day and Weekend status is held constant, temperature does not seem to have a noticeable effect on the number of UT students riding the bus. This is because the correlation coefficient between temperature and average bus boarding is a weak positive correlation. Hour of day and day of week have a higher impact than temperature. It can be said that UT students grind no matter rain or shine!
+
+# Problem 4: Wrangling the Billboard Top 100
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+billboard <- read.csv("billboard.csv")
+
+
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+library(knitr)
+library(kableExtra)
+
+#part A
+top_songs <- billboard %>% 
+  group_by(performer, song) %>% 
+  summarize(weeksontop100 = n_distinct(weeks_on_chart)) %>% 
+  arrange(desc(weeksontop100)) %>% 
+  head(10)
+
+top_10_songs <- top_songs %>% 
+  kable("html") %>% 
+  kable_styling("striped", full_width = FALSE, position = "center") %>% 
+  column_spec(3, width = "5em")
+  
+top_10_songs
+```
+
+This table shows the top 10 most popular songs based on their respective weeks on the billboard hot 100 chart.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+diversity <- billboard %>% 
+  group_by(year) %>% 
+  filter(year > 1958 & year < 2021) %>% 
+  summarize(unique = n_distinct(song)) 
+
+ggplot(diversity, aes(x = year, y = unique)) +
+  geom_line(color = "indianred")+
+  theme_bw()+
+  labs(title = "Musical Diversity: Unique songs appearing on the billboard hot 100 over the years. ") +
+  labs(x = "Year", y = "Unique Songs")
+  
+
+```
+
+This graph shows the amount of Unique songs appearing on billboard top 100 chart from the time span of 1959 - 2020. According to the graph, 1960-1970 were the peak years for unique songs. This was because there are were a lot of new artists such as Bob Dylan, Willie Nelson and Elvis Presley who disrupted the music industry and came out with a lot of hits. Many different artists were having their music heard and blowing up in the music scene during this time which led to a lot of songs charting in the top 100. However, from 1970 - 2000, the amount of unique songs continuously decreased because a lot of established artists were making hits that stayed on the charts for long periods of time. Artists such as ABBA, Bee Gees, U2, Chicago, Fleetwood mac and Michael Jackson were making chart dominating hits that would basically live on the charts. Replay value was insane and the music that was being put out by these artists was addicting. Anyhow, after this 30 year period of decay for unique songs, the 00s and 10s were promising for a uprising in unique songs. Artists such as Maroon 5, Taylor Swift, Coldplay, Kanye West, Lady Gaga, Usher and Calvin Harris were constantly releasing bangers and this led to a lot of their music charting. Due to streaming platforms such as Spotify, Apple music, and YouTube, people were getting exposed to many new artists leading to a lot of opportunity to find a place in the top 100 again.
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+ten_weekhits <- billboard %>% 
+  group_by(performer, song) %>% 
+  summarize(weeks = n_distinct(weeks_on_chart)) %>%
+  mutate(count = 1) %>% 
+  filter(weeks >= 10)
+  
+performer_tenweeks <- ten_weekhits %>% 
+  group_by(performer) %>% 
+  summarize(total_tenweek_hits = sum(count)) %>% 
+  filter(total_tenweek_hits >= 30)
+
+ggplot(performer_tenweeks, aes(x = performer, y = total_tenweek_hits, fill= performer))+
+  geom_bar(stat = "identity", color = "black")+
+  coord_flip()+
+  labs(x = "Total Number of Songs",
+       y = "Performer (Artist)", 
+       title = "Top Artists with the most Billboard Hot 100 Hits!",
+       subtitle = "10 weeks on billboard or more",
+       caption = "Elton John, Madonna, and Kenny Chesney have the most 10 week hits!")+
+  
+  theme_bw()+
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text (size = 8)
+  )
+```
