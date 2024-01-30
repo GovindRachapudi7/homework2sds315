@@ -1,10 +1,8 @@
 ---
 title: "Homework 2 Data Science"
-author: "Govind Rachapudi"
-date: "1/28/24"
-output:
-  html_document:
-    df_print: paged
+author: "Govind Rachapudi: gr25925"
+date: "https://github.com/GovindRachapudi7/homework2sds315.git"
+output: html_document
 ---
 
 # 1. Beauty, or not, in the classroom
